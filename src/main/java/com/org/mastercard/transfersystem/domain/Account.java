@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.controllers.domain;
+package com.org.mastercard.transfersystem.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +17,7 @@ import java.util.List;
 public class Account {
 
     private String accountId;
-    private String balanceAmount;
+    private double balanceAmount;
     private String currencyCode;
     private List<Transactions> transactions;
 }

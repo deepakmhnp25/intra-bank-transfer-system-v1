@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.controllers.domain;
+package com.org.mastercard.transfersystem.domain;
 
 import lombok.Getter;
 import lombok.Setter;
