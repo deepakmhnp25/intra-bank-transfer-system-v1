@@ -98,7 +98,7 @@ class AccountControllerTest {
         HttpEntity<Account> request = new HttpEntity<>(account);
         // When trying to create an account with valid account details
         ArrayList allAccounts
-                = this.testRestTemplate.postForObject("http://localhost:" + port + "/createAccount",
+                = this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
                 request, ArrayList.class);
         // Then : one account should be created
         assertEquals(1,  allAccounts.size());
