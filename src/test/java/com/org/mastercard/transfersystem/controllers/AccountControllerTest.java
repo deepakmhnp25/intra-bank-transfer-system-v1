@@ -1,6 +1,5 @@
 package com.org.mastercard.transfersystem.controllers;
 
-
 import com.org.mastercard.transfersystem.TransferSystem;
 import com.org.mastercard.transfersystem.domain.Account;
 import com.org.mastercard.transfersystem.domain.Transactions;
@@ -36,7 +35,7 @@ class AccountControllerTest {
     private TestRestTemplate testRestTemplate;
 
     /**
-     * Acceptence Criteria 1
+     * Acceptance Criteria 1
      * Given valid account details and positive funds available
      * When account-id 111 sends £10 to account-id 222
      * Then account-111's account should be debited with £10
@@ -66,8 +65,32 @@ class AccountControllerTest {
     }
 
     /**
-     * Get account balance of the specified valid account id
-     * Acceptance criteria no 4 : When I call a service to check my account balance
+     * Acceptance Criteria 2
+     * Given invalid receiver account details and positive funds available
+     * When account-id 111 sends £10 to account-id 999
+     * Then system should reiect the transfer and report invalid account details
+     */
+    @Test
+    void invalidAccountDetailsForFundTransfer(){
+
+    }
+
+    /**
+     * Acceptance criteria 3
+     * Given valid account details and no funds available (fO)
+     * When account-id 111 sends £10 to account-id 222
+     * Then system should reject the transfer with error Insufficient
+     * funds available
+     */
+    @Test
+    void testFundTransferNoFundAvailable(){
+
+    }
+
+    /**
+     * Acceptance criteria no 4
+     * Given valid account details
+     * When I call a service to check my account balance
      * Then system should be able to report my current balance
      */
     @Test
@@ -85,6 +108,38 @@ class AccountControllerTest {
         assertEquals("111", accountResponse.getAccountId());
     }
 
+    /**
+     * Acceptance Criteria : 5
+     * Given valid account details
+     * When I call mini-statement service
+     * Then system should be able to show me last 20 transactions
+     */
+    @Test
+    void getMiniStatement(){
+
+    }
+
+    /**
+     * Acceptance Criteria : 6
+     * Given invalid account details
+     * When I call a service to check my account balance
+     * Then system should return error saying invalid account number
+     */
+    @Test
+    void checkBalanceWithInvalidAccountNo(){
+
+    }
+
+    /**
+     * Acceptance criteria : 7
+     * Given invalid account details
+     * When I call mini statement service
+     * Then system should return error saying invalid account number
+     */
+    @Test
+    void getMiniStatementWithInvalidAccountNo(){
+
+    }
     /**
      * Test successful creation of account
      */
