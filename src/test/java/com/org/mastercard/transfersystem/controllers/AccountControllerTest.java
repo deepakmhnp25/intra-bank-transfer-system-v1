@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,6 +82,26 @@ class AccountControllerTest {
         assertEquals(100.10, accountResponse.getBalanceAmount());
         assertEquals("GBP", accountResponse.getCurrencyCode());
         assertEquals("111", accountResponse.getAccountId());
+    }
+
+    /**
+     * Test successful creation of account
+     */
+    @Test
+    void testAccountCreation(){
+        // Given valid account details
+        Account account = new Account();
+        account.setAccountId("111");
+        account.setCurrencyCode("GBP");
+        account.setBalanceAmount(100.10);
+
+        HttpEntity<Account> request = new HttpEntity<>(account);
+        // When trying to create an account with valid account details
+        ArrayList allAccounts
+                = this.testRestTemplate.postForObject("http://localhost:" + port + "/createAccount",
+                request, ArrayList.class);
+        // Then : one account should be created
+        assertEquals(1,  allAccounts.size());
     }
 
 }
