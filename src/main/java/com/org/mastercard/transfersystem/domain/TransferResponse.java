@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class TransferStatus {
+public class TransferResponse {
 
     private boolean status;
     private List<Account> updatedAccountDetails;

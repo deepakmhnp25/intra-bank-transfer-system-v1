@@ -3,8 +3,8 @@ package com.org.mastercard.transfersystem.controllers;
 import com.org.mastercard.transfersystem.TransferSystem;
 import com.org.mastercard.transfersystem.domain.Account;
 import com.org.mastercard.transfersystem.domain.TransactionResponse;
-import com.org.mastercard.transfersystem.domain.TransactionRequest;
-import com.org.mastercard.transfersystem.domain.TransferStatus;
+import com.org.mastercard.transfersystem.domain.TransferRequest;
+import com.org.mastercard.transfersystem.domain.TransferResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
@@ -52,17 +53,19 @@ class AccountControllerTest {
      * Then account-111's account should be debited with £10
      * And account-222's account should be credited with 10
      */
+    @Test
     void testTransferAmount(){
         // Given valid account details and positive funds available
-        TransactionRequest transferRequest = new TransactionRequest();
+        TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("222");
         transferRequest.setFromAccountId("111");
         transferRequest.setAmount(10);
+        transferRequest.setCurrencyCode("GBP");
 
         // When account-id 111 sends £10 to account-id 222
-        TransferStatus transferStatus = this.testRestTemplate
+        TransferResponse transferStatus = this.testRestTemplate
                 .postForObject("http://localhost:" + port + "/accounts/transfer",
-                        new HttpEntity<>(transferRequest), TransferStatus.class);
+                        new HttpEntity<>(transferRequest), TransferResponse.class);
 
         assertTrue(transferStatus.isStatus());
 
@@ -86,7 +89,7 @@ class AccountControllerTest {
     @Test
     void invalidAccountDetailsForFundTransfer(){
         // Given valid account details and positive funds available
-        TransactionRequest transferRequest = new TransactionRequest();
+        TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("999");
         transferRequest.setFromAccountId("111");
         transferRequest.setAmount(10);
@@ -97,9 +100,30 @@ class AccountControllerTest {
                         new HttpEntity<>(transferRequest), String.class);
 
         // Then system should reject the transfer and report invalid account details
-        assertEquals(400,  responseEntity.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
         assertEquals("Invalid receiver account details", responseEntity.getBody());
+    }
 
+    /**
+     * Should not transfer the amount when
+     * Invalid sender account details
+     */
+    @Test
+    void invalidSenderAccountDetails(){
+        // Given invalid sender account details
+        TransferRequest transferRequest = new TransferRequest();
+        transferRequest.setToAccountId("111");
+        transferRequest.setFromAccountId("999");
+        transferRequest.setAmount(10);
+
+        // When account-id 111 sends £10 to account-id 999
+        ResponseEntity responseEntity = this.testRestTemplate
+                .postForEntity("http://localhost:" + port + "/accounts/transfer",
+                        new HttpEntity<>(transferRequest), String.class);
+
+        // Then system should reject the transfer and report invalid account details
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
+        assertEquals("Invalid sender account details", responseEntity.getBody());
     }
 
     /**
@@ -112,7 +136,7 @@ class AccountControllerTest {
     @Test
     void testFundTransferNoFundAvailable(){
         // Given valid account details and no funds available (fO)
-        TransactionRequest transferRequest = new TransactionRequest();
+        TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("222");
         transferRequest.setFromAccountId("333");
         transferRequest.setAmount(10);
@@ -124,8 +148,8 @@ class AccountControllerTest {
 
         // Then system should reject the transfer with error Insufficient
         // funds available
-        assertEquals(400,  responseEntity.getStatusCode());
-        assertEquals("Insufficient Account Balance in Account 333", responseEntity.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
+        assertEquals("Insufficient Account Balance in sender account", responseEntity.getBody());
     }
 
     /**
@@ -285,15 +309,15 @@ class AccountControllerTest {
     }
 
     private void createTransactions(String fromAccount, String toAccount, double amount){
-        TransactionRequest transferRequest = new TransactionRequest();
+        TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId(toAccount);
         transferRequest.setFromAccountId(fromAccount);
         transferRequest.setAmount(amount);
 
         // When account-id 111 sends £10 to account-id 222
-        TransferStatus transferStatus = this.testRestTemplate
+        TransferResponse transferStatus = this.testRestTemplate
                 .postForObject("http://localhost:" + port + "/accounts/transfer",
-                        new HttpEntity<>(transferRequest), TransferStatus.class);
+                        new HttpEntity<>(transferRequest), TransferResponse.class);
     }
 
 }

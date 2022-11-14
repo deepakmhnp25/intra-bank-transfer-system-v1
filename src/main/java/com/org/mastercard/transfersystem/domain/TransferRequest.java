@@ -13,9 +13,10 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class TransactionRequest {
+public class TransferRequest {
 
     private String fromAccountId;
     private String toAccountId;
     private double amount;
+    private String currencyCode;
 }
