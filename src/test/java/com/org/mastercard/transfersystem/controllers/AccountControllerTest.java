@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -102,6 +103,34 @@ class AccountControllerTest {
                 request, ArrayList.class);
         // Then : one account should be created
         assertEquals(1,  allAccounts.size());
+    }
+
+
+    @Test
+    void testDuplicateAccountCreation(){
+        // Given duplicate account details
+        Account account1 = new Account();
+        account1.setAccountId("111");
+        account1.setCurrencyCode("GBP");
+        account1.setBalanceAmount(100.10);
+
+        HttpEntity<Account> request1 = new HttpEntity<>(account1);
+
+        Account account2 = new Account();
+        account2.setAccountId("111");
+        account2.setCurrencyCode("GBP");
+        account2.setBalanceAmount(100.10);
+
+        HttpEntity<Account> request2 = new HttpEntity<>(account2);
+        // When trying to create accounts with same id twice
+        ArrayList allAccounts
+                = this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
+                request1, ArrayList.class);
+        ResponseEntity responseEntity = this.testRestTemplate.postForEntity("http://localhost:" + port + "/accounts/createAccount",
+                request1, String.class);
+        // Then : one account should be created
+        assertEquals(400,  responseEntity.getStatusCode());
+        assertEquals("Account already exists in the system", responseEntity.getBody());
     }
 
 }
