@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem;
+package com.org.modernbank.transfersystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,6 +1,6 @@
-package com.org.mastercard.transfersystem;
+package com.org.modernbank.transfersystem;
 
-import com.org.mastercard.transfersystem.domain.*;
+import com.org.modernbank.transfersystem.domain.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
-import static com.org.mastercard.transfersystem.constants.ErrorMessageConstants.*;
+import static com.org.modernbank.transfersystem.constants.ErrorMessageConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

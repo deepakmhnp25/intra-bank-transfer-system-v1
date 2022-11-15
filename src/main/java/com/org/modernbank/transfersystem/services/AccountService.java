@@ -1,15 +1,15 @@
-package com.org.mastercard.transfersystem.services;
+package com.org.modernbank.transfersystem.services;
 
-import com.org.mastercard.transfersystem.domain.*;
-import com.org.mastercard.transfersystem.exceptions.AccountException;
-import com.org.mastercard.transfersystem.exceptions.DuplicateException;
+import com.org.modernbank.transfersystem.domain.*;
+import com.org.modernbank.transfersystem.exceptions.AccountException;
+import com.org.modernbank.transfersystem.exceptions.DuplicateException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.org.mastercard.transfersystem.constants.ErrorMessageConstants.*;
+import static com.org.modernbank.transfersystem.constants.ErrorMessageConstants.*;
 
 /**
  * This service returns the account/transaction related information

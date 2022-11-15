@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.exceptions;
+package com.org.modernbank.transfersystem.exceptions;
 
 /**
  * Runtime account related exceptions

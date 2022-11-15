@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.exceptions;
+package com.org.modernbank.transfersystem.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

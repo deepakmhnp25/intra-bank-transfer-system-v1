@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.domain;
+package com.org.modernbank.transfersystem.domain;
 
 import lombok.Getter;
 import lombok.Setter;

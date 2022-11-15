@@ -1,7 +1,7 @@
-package com.org.mastercard.transfersystem.controllers;
+package com.org.modernbank.transfersystem.controllers;
 
-import com.org.mastercard.transfersystem.domain.*;
-import com.org.mastercard.transfersystem.services.AccountService;
+import com.org.modernbank.transfersystem.domain.*;
+import com.org.modernbank.transfersystem.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.org.mastercard.transfersystem.constants.EndPointConstants.*;
+import static com.org.modernbank.transfersystem.constants.EndPointConstants.*;
 
 /**
  * Controller class for the rest api mapping related to Accounts

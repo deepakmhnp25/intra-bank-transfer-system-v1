@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.domain;
+package com.org.modernbank.transfersystem.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * Response entity class for account creation
+ * Response Entity for Transfer service request
  *
  * @author Deepak Mohan
  * @version 1.0
@@ -14,8 +14,9 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class AccountResponse {
+public class TransferResponse {
 
     private boolean status;
-    private Account account;
+    private List<Account> updatedAccountDetails;
+
 }

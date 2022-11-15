@@ -1,4 +1,4 @@
-package com.org.mastercard.transfersystem.constants;
+package com.org.modernbank.transfersystem.constants;
 
 public class ErrorMessageConstants {
 
