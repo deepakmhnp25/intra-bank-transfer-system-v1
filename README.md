@@ -1,7 +1,7 @@
 # intra-bank-transfer-system-v1
 ## Description
 
-intra-bank payment transfer system to allow real time payments between internal accounts.
+Intra-bank payment transfer system to allow real time payments between internal accounts.
 
 This service is
 * Accessible by Restful Webservices
@@ -10,6 +10,15 @@ This service is
 * able to transfer money in real time
 * able to fetch accounts details from accounts service
 
+### Technical Details
+* The application is written in Java 8
+* Restful API Architecture
+* Code coverage is above 95%
+
+![img_4.png](img_4.png)
+* Maven
+* SpringBoot
+* Junit
 ## APIs and Workflow
 ### 1. Create an account
 * To create an account , user can make a POST api call to "/createAccount" rest webservice.
