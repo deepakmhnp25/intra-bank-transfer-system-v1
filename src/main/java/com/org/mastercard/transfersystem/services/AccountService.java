@@ -1,18 +1,16 @@
 package com.org.mastercard.transfersystem.services;
 
-import com.org.mastercard.transfersystem.domain.Account;
-import com.org.mastercard.transfersystem.domain.Transaction;
-import com.org.mastercard.transfersystem.domain.TransferResponse;
+import com.org.mastercard.transfersystem.domain.*;
 import com.org.mastercard.transfersystem.exceptions.AccountException;
+import com.org.mastercard.transfersystem.exceptions.DuplicateException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * This service returns the account related information
+ * This service returns the account/transaction related information
  *
  * @author Deepak Mohan
  * @version 1.0
@@ -23,21 +21,24 @@ import java.util.*;
 public class AccountService {
 
     /**
-     * Returns account details using and accountId
-     * @param accountId for the account to be fetched
-     * @return Account details for the specific account id
+     * get the account balance for the account id
+     * @param accountId account id for the account
+     * @param allAccounts all accounts in the system
+     * @return Balance response
      */
-    public Account getAccount(String accountId){
-
-
-        // since the requirement says to keep all the data in an in memory data structure,
-        // reading all the account test data from a file and creating it as a List<Accounts>
-
-
-
-        return new Account();
+    public BalanceResponse getBalance(String accountId, List<Account> allAccounts){
+        Optional<Account> accountOptional = allAccounts.stream().filter(account -> account.getAccountId().equals(accountId)).findFirst();
+        if(accountOptional.isPresent()){
+            // build response
+            Account account = accountOptional.get();
+            BalanceResponse balanceResponse = new BalanceResponse(account.getAccountId(), account.getBalanceAmount(),
+                    account.getCurrencyCode());
+            return balanceResponse;
+        } else {
+            // Account does not exist in the system
+            throw new AccountException("Unable to check the balance due to invalid account id");
+        }
     }
-
     /**
      * Debits one account and Credit the amount to another account
      * @param fromAccountId debit account
@@ -70,9 +71,43 @@ public class AccountService {
             // Invalid Sender account
             throw new AccountException("Invalid sender account details");
         }
-
     }
 
+    /**
+     * Get mini statement for the account id
+     * @param accountId account id for mini statement
+     * @param allAccounts all accounts in the system
+     * @return mini statement
+     */
+    public TransactionResponse getMiniStatement(String accountId, List<Account> allAccounts){
+        Optional<Account> accountOptional = allAccounts.stream().filter(account -> account.getAccountId().equals(accountId)).findFirst();
+        if(accountOptional.isPresent()){
+            // get latest 20 transactions
+            return getLatest20Transactions(accountOptional.get());
+        } else {
+            // Account does not exist in the system
+            throw new AccountException("Unable to get the statement due to invalid account id");
+        }
+    }
+
+    /**
+     * Create an account in the system
+     * @param newAccount new account details
+     * @param allAccounts in memory store for all accounts
+     */
+    public AccountResponse createAccount(Account newAccount, List<Account> allAccounts){
+        if(allAccounts.stream().anyMatch(accountObj -> accountObj.getAccountId().equals(newAccount.getAccountId()))){
+            throw new DuplicateException("Account already exists in the system");
+        }
+        newAccount.setTransactions(new ArrayList());
+        allAccounts.add(newAccount);
+
+        AccountResponse accountResponse = new AccountResponse();
+        accountResponse.setStatus(true);
+        accountResponse.setAccount(newAccount);
+        return accountResponse;
+
+    }
     private static void updateBalances(double amount, Optional<Account> fromAccount, Optional<Account> toAccount) {
         double accountBalanceAfterTransfer = fromAccount.get().getBalanceAmount() - amount;
         if(accountBalanceAfterTransfer < 0){
@@ -108,14 +143,11 @@ public class AccountService {
      * @param toAccount credit account
      */
     private static void transact(String fromAccountId, String toAccountid, double amount, String currencyCode, Optional<Account> fromAccount, Optional<Account> toAccount) {
-        Date date = Calendar.getInstance().getTime();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-        String transactionDate = dateFormat.format(date);
 
         Transaction debitTransaction = createTransaction(toAccountid, amount, currencyCode,
-                transactionDate, "DEBIT");
+                new Date(), "DEBIT");
         Transaction creditTransaction =  createTransaction(fromAccountId, amount, currencyCode,
-                transactionDate, "CREDIT");
+                new Date(), "CREDIT");
 
         fromAccount.get().getTransactions().add(debitTransaction);
         toAccount.get().getTransactions().add(creditTransaction);
@@ -131,7 +163,7 @@ public class AccountService {
      * @return transaction
      */
     private static Transaction createTransaction(String accountId, double amount, String currencyCode,
-                                                 String transactionDate, String type) {
+                                                 Date transactionDate, String type) {
         Transaction debitTransaction = new Transaction();
         debitTransaction.setAccountId(accountId);
         debitTransaction.setAmount(amount);
@@ -142,12 +174,27 @@ public class AccountService {
     }
 
     /**
-     * Create an account in the system
-     * @param newAccount new account details
-     * @param allAccounts in memory store for all accounts
+     * Get latest 20 transactions
+     * @param account account
+     * @return transactions
      */
-    public void createAccount(Account newAccount, List<Account> allAccounts){
-        newAccount.setTransactions(new ArrayList());
-        allAccounts.add(newAccount);
+    private static TransactionResponse getLatest20Transactions(Account account) {
+
+        // comparator to compare transaction dates
+        Comparator<Transaction> comparator = (c1, c2) -> {
+            return Long.valueOf(c1.getTransactionDate().getTime()).compareTo(c2.getTransactionDate().getTime());
+        };
+
+        // sorting the transactions
+        List<Transaction> sortedTransactions = account.getTransactions().stream()
+                .sorted(comparator.reversed())
+                .collect(Collectors.toList());
+
+        // limit latest 20 transactions
+        TransactionResponse transactionResponse
+                = new TransactionResponse();
+        transactionResponse.setTransactions(sortedTransactions
+                .subList(0,sortedTransactions.size() >= 20 ? 20: sortedTransactions.size()));
+        return transactionResponse;
     }
 }

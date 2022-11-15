@@ -1,9 +1,6 @@
 package com.org.mastercard.transfersystem.controllers;
 
-import com.org.mastercard.transfersystem.domain.Account;
-import com.org.mastercard.transfersystem.domain.TransferRequest;
-import com.org.mastercard.transfersystem.domain.TransferResponse;
-import com.org.mastercard.transfersystem.exceptions.DuplicateException;
+import com.org.mastercard.transfersystem.domain.*;
 import com.org.mastercard.transfersystem.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -32,25 +29,21 @@ public class AccountController {
     private AccountService accountService;
 
     /**
-     * Service to create an account in the system
-     * @param account account details for the new account
-     * @return
+     * Service to get the account balance
+     * @param accountId account id for balance
+     * @return account balance
      */
-    @PostMapping(value = "/createAccount", consumes = MediaType.APPLICATION_JSON_VALUE,
-    produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity createAccount(@Valid @RequestBody Account account) {
-        if(allAccounts.stream().anyMatch(accountObj -> accountObj.getAccountId().equals(account.getAccountId()))){
-            throw new DuplicateException("Account already exists in the system");
-        }
-        accountService.createAccount(account, allAccounts);
-        return ResponseEntity.ok(allAccounts);
-    }
-
     @GetMapping("/{accountId}/balance")
-    public List<Account> getAccount(@PathVariable String accountId){
-        return allAccounts;
+    public ResponseEntity<BalanceResponse> getBalance(@PathVariable String accountId){
+        BalanceResponse balance = accountService.getBalance(accountId, allAccounts);
+        return ResponseEntity.ok(balance);
     }
 
+    /**
+     * Service to transfer the amount
+     * @param transferRequest amount transfer request
+     * @return transfer status
+     */
     @PostMapping(value = "/transfer", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TransferResponse> transferAmount(@RequestBody TransferRequest transferRequest){
@@ -60,8 +53,32 @@ public class AccountController {
         double amount = transferRequest.getAmount();
         String currencyCode = transferRequest.getCurrencyCode();
 
-        TransferResponse transferResponse = accountService.transferAmount(fromAccountId, toAccountId, amount, currencyCode, allAccounts);
+        TransferResponse transferResponse = accountService.transferAmount(fromAccountId,
+                toAccountId, amount, currencyCode, allAccounts);
         return ResponseEntity.ok(transferResponse);
+    }
+
+    /**
+     * Retrieves the mini statement for the account
+     * @param accountId account id for mini statement
+     * @return mini statement
+     */
+    @GetMapping("/{accountId}/statements/mini")
+    public ResponseEntity<TransactionResponse> getMiniStatement(@PathVariable String accountId){
+        TransactionResponse transactionResponse = accountService.getMiniStatement(accountId, allAccounts);
+        return ResponseEntity.ok(transactionResponse);
+    }
+
+    /**
+     * Service to create an account in the system
+     * @param account account details for the new account
+     * @return
+     */
+    @PostMapping(value = "/createAccount", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody Account account) {
+        AccountResponse accountResponse = accountService.createAccount(account, allAccounts);
+        return ResponseEntity.ok(accountResponse);
     }
 
 }

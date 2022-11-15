@@ -1,13 +1,10 @@
-package com.org.mastercard.transfersystem.controllers;
+package com.org.mastercard.transfersystem;
 
-import com.org.mastercard.transfersystem.TransferSystem;
-import com.org.mastercard.transfersystem.domain.Account;
-import com.org.mastercard.transfersystem.domain.TransactionResponse;
-import com.org.mastercard.transfersystem.domain.TransferRequest;
-import com.org.mastercard.transfersystem.domain.TransferResponse;
-import org.junit.jupiter.api.BeforeAll;
+import com.org.mastercard.transfersystem.domain.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -16,14 +13,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * This is the test class to test Account Related functionalities
+ * This is the test class to test Account/Transfer Related functionalities
  *
  * @author Deepak Mohan
  * @version 1.0
@@ -31,20 +27,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(classes = TransferSystem.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AccountControllerTest {
+class IntegrationTest {
+
+    private static Logger logger = LoggerFactory.getLogger(IntegrationTest.class);
 
     @LocalServerPort
     private int port;
 
     @Autowired
     private TestRestTemplate testRestTemplate;
-
-    @BeforeAll
-    void setUp() throws IOException {
-        createAccount("111", "GBP", 20);
-        createAccount("222", "GBP", 20);
-        createAccount("333", "GBP", 0);
-    }
 
     /**
      * Acceptance Criteria 1
@@ -56,13 +47,15 @@ class AccountControllerTest {
     @Test
     void testTransferAmount(){
         // Given valid account details and positive funds available
+        createAccount("111", "GBP", 20);
+        createAccount("222", "GBP", 20);
+
+        // When account-id 111 sends £10 to account-id 222
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("222");
         transferRequest.setFromAccountId("111");
         transferRequest.setAmount(10);
         transferRequest.setCurrencyCode("GBP");
-
-        // When account-id 111 sends £10 to account-id 222
         TransferResponse transferStatus = this.testRestTemplate
                 .postForObject("http://localhost:" + port + "/accounts/transfer",
                         new HttpEntity<>(transferRequest), TransferResponse.class);
@@ -89,12 +82,13 @@ class AccountControllerTest {
     @Test
     void invalidAccountDetailsForFundTransfer(){
         // Given valid account details and positive funds available
+        createAccount("111", "GBP", 20);
+
+        // When account-id 111 sends £10 to account-id 999
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("999");
         transferRequest.setFromAccountId("111");
         transferRequest.setAmount(10);
-
-        // When account-id 111 sends £10 to account-id 999
         ResponseEntity responseEntity = this.testRestTemplate
                 .postForEntity("http://localhost:" + port + "/accounts/transfer",
                         new HttpEntity<>(transferRequest), String.class);
@@ -110,6 +104,7 @@ class AccountControllerTest {
      */
     @Test
     void invalidSenderAccountDetails(){
+
         // Given invalid sender account details
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("111");
@@ -136,12 +131,14 @@ class AccountControllerTest {
     @Test
     void testFundTransferNoFundAvailable(){
         // Given valid account details and no funds available (fO)
+        createAccount("333", "GBP", 0);
+        createAccount("222", "GBP", 20);
+
+        // When account-id 333 sends £10 to account-id 222
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId("222");
         transferRequest.setFromAccountId("333");
         transferRequest.setAmount(10);
-
-        // When account-id 333 sends £10 to account-id 222
         ResponseEntity responseEntity = this.testRestTemplate
                 .postForEntity("http://localhost:" + port + "/accounts/transfer",
                         new HttpEntity<>(transferRequest), String.class);
@@ -162,15 +159,18 @@ class AccountControllerTest {
     void testAccountBalance(){
 
         // Given : Valid account detail
+        createAccount("111", "GBP", 20);
         String accountId = "111";
 
         // When : I call a service to check my account balance
-        Account accountResponse = this.testRestTemplate.getForObject("http://localhost:" + port + "/accounts/" + accountId + "/balance", Account.class);
+        BalanceResponse balanceResponse = this.testRestTemplate
+                .getForObject("http://localhost:" + port + "/accounts/" + accountId + "/balance",
+                        BalanceResponse.class);
 
         // Then : Then system should be able to report my current balance
-        assertEquals(10, accountResponse.getBalanceAmount());
-        assertEquals("GBP", accountResponse.getCurrencyCode());
-        assertEquals("111", accountResponse.getAccountId());
+        assertEquals(20, balanceResponse.getBalance());
+        assertEquals("GBP", balanceResponse.getCurrency());
+        assertEquals("111", balanceResponse.getAccountId());
     }
 
     /**
@@ -181,31 +181,40 @@ class AccountControllerTest {
      */
     @Test
     void getMiniStatement(){
-
-        createTransactions("111", "222", 5);
-        createTransactions("111", "222", 1);
-        createTransactions("222", "111", 1);
-        createTransactions("222", "111", 7);
-        createTransactions("111", "222", 2);
-        createTransactions("111", "222", 9);
-        createTransactions("222", "111", 2);
-        createTransactions("222", "111", 2);
-        createTransactions("222", "111", 2);
-        createTransactions("222", "111", 2);
-        createTransactions("222", "111", 1);
-        createTransactions("111", "222", 9);
-
-
         // Given valid account details
-        String accountId = "111";
+        createAccount("666", "GBP", 20);
+        createAccount("777", "GBP", 20);
+        // create 21 transactions
+        createTransactions("666", "777", 5);
+        createTransactions("666", "777", 1);
+        createTransactions("777", "666", 1);
+        createTransactions("777", "666", 7);
+        createTransactions("666", "777", 2);
+        createTransactions("666", "777", 9);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 1);
+        createTransactions("666", "777", 9);
+        createTransactions("777", "666", 9);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("666", "777", 2);
+        createTransactions("666", "777", 2);
+        createTransactions("777", "666", 2);
+        createTransactions("666", "777", 2);
+        createTransactions("666", "777", 2);
 
         // When I call mini-statement service
+        String accountId = "666";
         TransactionResponse transactionResponse = this.testRestTemplate
                 .getForObject("http://localhost:" + port + "/accounts/" + accountId + "/statements/mini",
                         TransactionResponse.class);
 
         // Then system should be able to show me last 20 transactions
-        assertEquals(12, transactionResponse.getTransactions().size());
+        assertEquals(20, transactionResponse.getTransactions().size());
 
     }
 
@@ -218,13 +227,15 @@ class AccountControllerTest {
     @Test
     void checkBalanceWithInvalidAccountNo(){
         // Given : invalid account details
-        String accountId = "111";
+        String accountId = "999";
 
         // When I call a service to check my account balance
-        ResponseEntity responseEntity = this.testRestTemplate.getForEntity("http://localhost:" + port + "/accounts/" + accountId + "/balance", String.class);
+        ResponseEntity responseEntity =
+                this.testRestTemplate.getForEntity("http://localhost:" + port + "/accounts/" + accountId + "/balance",
+                        String.class);
 
-        assertEquals(400,  responseEntity.getStatusCode());
-        assertEquals("Unable to check the balance due to invalid account id ", responseEntity.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
+        assertEquals("Unable to check the balance due to invalid account id", responseEntity.getBody());
     }
 
     /**
@@ -237,7 +248,7 @@ class AccountControllerTest {
     void getMiniStatementWithInvalidAccountNo(){
 
         // Given invalid account details
-        String accountId = "111";
+        String accountId = "999";
 
         // When I call mini statement service
         ResponseEntity responseEntity = this.testRestTemplate
@@ -245,8 +256,8 @@ class AccountControllerTest {
                         String.class);
 
         // Then system should return error saying invalid account number
-        assertEquals(400,  responseEntity.getStatusCode());
-        assertEquals("Unable to get the statement due to invalid account id ", responseEntity.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
+        assertEquals("Unable to get the statement due to invalid account id", responseEntity.getBody());
     }
     /**
      * Test successful creation of account
@@ -255,23 +266,26 @@ class AccountControllerTest {
     void testAccountCreation(){
         // Given valid account details
         Account account = new Account();
-        account.setAccountId("111");
+        account.setAccountId("555");
         account.setCurrencyCode("GBP");
         account.setBalanceAmount(100.10);
 
         HttpEntity<Account> request = new HttpEntity<>(account);
         // When trying to create an account with valid account details
-        ArrayList allAccounts
+        AccountResponse accountResponse
                 = this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
-                request, ArrayList.class);
+                request, AccountResponse.class);
         // Then : one account should be created
-        assertEquals(1,  allAccounts.size());
+        assertTrue(accountResponse.isStatus());
+        assertEquals("555", accountResponse.getAccount().getAccountId());
     }
 
 
     @Test
     void testDuplicateAccountCreation(){
         // Given duplicate account details
+        createAccount("111", "GBP", 20);
+
         Account account1 = new Account();
         account1.setAccountId("111");
         account1.setCurrencyCode("GBP");
@@ -279,23 +293,19 @@ class AccountControllerTest {
 
         HttpEntity<Account> request1 = new HttpEntity<>(account1);
 
-        Account account2 = new Account();
-        account2.setAccountId("111");
-        account2.setCurrencyCode("GBP");
-        account2.setBalanceAmount(100.10);
-
-        HttpEntity<Account> request2 = new HttpEntity<>(account2);
-        // When trying to create accounts with same id twice
-        ArrayList allAccounts
-                = this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
-                request1, ArrayList.class);
         ResponseEntity responseEntity = this.testRestTemplate.postForEntity("http://localhost:" + port + "/accounts/createAccount",
                 request1, String.class);
         // Then : one account should be created
-        assertEquals(400,  responseEntity.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
         assertEquals("Account already exists in the system", responseEntity.getBody());
     }
 
+    /**
+     * Creates a test account in the system
+     * @param accountId account id of the account
+     * @param currencyCode currency code of the account
+     * @param startingBalance starting balance of the account
+     */
     private void createAccount(String accountId, String currencyCode, double startingBalance) {
         Account account = new Account();
         account.setAccountId(accountId);
@@ -303,11 +313,21 @@ class AccountControllerTest {
         account.setBalanceAmount(startingBalance);
 
         HttpEntity<Account> request = new HttpEntity<>(account);
-        // When trying to create an account with valid account details
-        this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
-                request, ArrayList.class);
+        try {
+            // When trying to create an account with valid account details
+            this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
+                    request, AccountResponse.class);
+        } catch (RuntimeException ex){
+            logger.info("Account already exists");
+        }
     }
 
+    /**
+     * Creates a transaction/transfer in the account
+     * @param fromAccount sender's account id
+     * @param toAccount receiver's account id
+     * @param amount transfer amount
+     */
     private void createTransactions(String fromAccount, String toAccount, double amount){
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setToAccountId(toAccount);

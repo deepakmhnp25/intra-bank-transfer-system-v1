@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * Response Entity for Transfer service request
+ * Response entity class for account creation
  *
  * @author Deepak Mohan
  * @version 1.0
@@ -14,9 +14,8 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class TransferResponse {
+public class AccountResponse {
 
     private boolean status;
-    private List<Account> updatedAccountDetails;
-
+    private Account account;
 }
