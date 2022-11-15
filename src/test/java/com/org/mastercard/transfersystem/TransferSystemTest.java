@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
+import static com.org.mastercard.transfersystem.constants.ErrorMessageConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @SpringBootTest(classes = TransferSystem.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class IntegrationTest {
+class TransferSystemTest {
 
-    private static Logger logger = LoggerFactory.getLogger(IntegrationTest.class);
+    private static Logger logger = LoggerFactory.getLogger(TransferSystemTest.class);
 
     @LocalServerPort
     private int port;
@@ -95,7 +96,7 @@ class IntegrationTest {
 
         // Then system should reject the transfer and report invalid account details
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Invalid receiver account details", responseEntity.getBody());
+        assertEquals(INVALID_RECEIVER_ACCOUNT, responseEntity.getBody());
     }
 
     /**
@@ -118,7 +119,7 @@ class IntegrationTest {
 
         // Then system should reject the transfer and report invalid account details
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Invalid sender account details", responseEntity.getBody());
+        assertEquals(INVALID_SENDER_ACCOUNT_DETAILS, responseEntity.getBody());
     }
 
     /**
@@ -146,7 +147,7 @@ class IntegrationTest {
         // Then system should reject the transfer with error Insufficient
         // funds available
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Insufficient Account Balance in sender account", responseEntity.getBody());
+        assertEquals(INSUFFICIENT_ACCOUNT_BALANCE_IN_SENDER_ACCOUNT, responseEntity.getBody());
     }
 
     /**
@@ -235,7 +236,7 @@ class IntegrationTest {
                         String.class);
 
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Unable to check the balance due to invalid account id", responseEntity.getBody());
+        assertEquals(NO_ACCOUNT_FOUND_BALANCE, responseEntity.getBody());
     }
 
     /**
@@ -257,7 +258,7 @@ class IntegrationTest {
 
         // Then system should return error saying invalid account number
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Unable to get the statement due to invalid account id", responseEntity.getBody());
+        assertEquals(UNABLE_TO_GET_THE_STATEMENT_DUE_TO_INVALID_ACCOUNT_ID, responseEntity.getBody());
     }
     /**
      * Test successful creation of account
@@ -297,7 +298,7 @@ class IntegrationTest {
                 request1, String.class);
         // Then : one account should be created
         assertEquals(HttpStatus.BAD_REQUEST,  responseEntity.getStatusCode());
-        assertEquals("Account already exists in the system", responseEntity.getBody());
+        assertEquals(ACCOUNT_ALREADY_EXISTS_IN_THE_SYSTEM, responseEntity.getBody());
     }
 
     /**
@@ -318,7 +319,7 @@ class IntegrationTest {
             this.testRestTemplate.postForObject("http://localhost:" + port + "/accounts/createAccount",
                     request, AccountResponse.class);
         } catch (RuntimeException ex){
-            logger.info("Account already exists");
+            logger.info(ACCOUNT_ALREADY_EXISTS_IN_THE_SYSTEM);
         }
     }
 

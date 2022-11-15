@@ -11,6 +11,8 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.org.mastercard.transfersystem.constants.EndPointConstants.*;
+
 /**
  * Controller class for the rest api mapping related to Accounts
  *
@@ -18,7 +20,7 @@ import java.util.List;
  * @version 1.0
  * @since 13-11-2022
  */
-@RequestMapping("/accounts")
+@RequestMapping(ACCOUNTS)
 @RestController
 public class AccountController {
 
@@ -33,7 +35,7 @@ public class AccountController {
      * @param accountId account id for balance
      * @return account balance
      */
-    @GetMapping("/{accountId}/balance")
+    @GetMapping(BALANCE)
     public ResponseEntity<BalanceResponse> getBalance(@PathVariable String accountId){
         BalanceResponse balance = accountService.getBalance(accountId, allAccounts);
         return ResponseEntity.ok(balance);
@@ -44,7 +46,7 @@ public class AccountController {
      * @param transferRequest amount transfer request
      * @return transfer status
      */
-    @PostMapping(value = "/transfer", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(value = TRANSFER, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TransferResponse> transferAmount(@RequestBody TransferRequest transferRequest){
 
@@ -63,7 +65,7 @@ public class AccountController {
      * @param accountId account id for mini statement
      * @return mini statement
      */
-    @GetMapping("/{accountId}/statements/mini")
+    @GetMapping(MINI_STATEMENT)
     public ResponseEntity<TransactionResponse> getMiniStatement(@PathVariable String accountId){
         TransactionResponse transactionResponse = accountService.getMiniStatement(accountId, allAccounts);
         return ResponseEntity.ok(transactionResponse);
@@ -74,7 +76,7 @@ public class AccountController {
      * @param account account details for the new account
      * @return
      */
-    @PostMapping(value = "/createAccount", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(value = CREATE_ACCOUNT, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody Account account) {
         AccountResponse accountResponse = accountService.createAccount(account, allAccounts);

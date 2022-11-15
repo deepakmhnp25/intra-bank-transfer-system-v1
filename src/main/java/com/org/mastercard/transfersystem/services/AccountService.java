@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.org.mastercard.transfersystem.constants.ErrorMessageConstants.*;
+
 /**
  * This service returns the account/transaction related information
  *
@@ -36,7 +38,7 @@ public class AccountService {
             return balanceResponse;
         } else {
             // Account does not exist in the system
-            throw new AccountException("Unable to check the balance due to invalid account id");
+            throw new AccountException(NO_ACCOUNT_FOUND_BALANCE);
         }
     }
     /**
@@ -65,11 +67,11 @@ public class AccountService {
                 return buildResponse(fromAccount, toAccount);
             } else {
                 // Invalid Receiver account
-                throw new AccountException("Invalid receiver account details");
+                throw new AccountException(INVALID_RECEIVER_ACCOUNT);
             }
         } else {
             // Invalid Sender account
-            throw new AccountException("Invalid sender account details");
+            throw new AccountException(INVALID_SENDER_ACCOUNT_DETAILS);
         }
     }
 
@@ -86,7 +88,7 @@ public class AccountService {
             return getLatest20Transactions(accountOptional.get());
         } else {
             // Account does not exist in the system
-            throw new AccountException("Unable to get the statement due to invalid account id");
+            throw new AccountException(UNABLE_TO_GET_THE_STATEMENT_DUE_TO_INVALID_ACCOUNT_ID);
         }
     }
 
@@ -97,7 +99,7 @@ public class AccountService {
      */
     public AccountResponse createAccount(Account newAccount, List<Account> allAccounts){
         if(allAccounts.stream().anyMatch(accountObj -> accountObj.getAccountId().equals(newAccount.getAccountId()))){
-            throw new DuplicateException("Account already exists in the system");
+            throw new DuplicateException(ACCOUNT_ALREADY_EXISTS_IN_THE_SYSTEM);
         }
         newAccount.setTransactions(new ArrayList());
         allAccounts.add(newAccount);
@@ -111,7 +113,7 @@ public class AccountService {
     private static void updateBalances(double amount, Optional<Account> fromAccount, Optional<Account> toAccount) {
         double accountBalanceAfterTransfer = fromAccount.get().getBalanceAmount() - amount;
         if(accountBalanceAfterTransfer < 0){
-            throw new AccountException("Insufficient Account Balance in sender account");
+            throw new AccountException(INSUFFICIENT_ACCOUNT_BALANCE_IN_SENDER_ACCOUNT);
         }
         fromAccount.get().setBalanceAmount(accountBalanceAfterTransfer);
         toAccount.get().setBalanceAmount(toAccount.get().getBalanceAmount() + amount);
