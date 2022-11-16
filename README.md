@@ -12,6 +12,7 @@ This service is
 
 ### Technical Details
 * The application is written in Java 8
+* Developed in TDD approach
 * Restful API Architecture
 * Code coverage is above 95%
 
